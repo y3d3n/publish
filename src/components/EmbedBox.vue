@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div hight="500px">
         <div>
             <h2>Choose your option</h2>
         </div>

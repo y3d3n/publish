@@ -1,7 +1,7 @@
 <template>
     <div>
         <div class="gradient topBox" :style="{ height: screenHeight + 'px' }">
-            <div>
+            <div :style="{ marginTop: scrollPosition + 'px' }">
                 <h1>What would you like to embed?</h1>
                 <form action="">
                     <input type="text" v-model="url" class="inpQuery">
@@ -9,7 +9,6 @@
                         go
                     </button>
                 </form>
-                <a href="#options" class="ch_link_white" rel="noopener noreferrer">Or browse your options below</a>
             </div>
             <div class="nav">
                 <div class="ch_lg_holder">
@@ -23,12 +22,15 @@
                 </div>
             </div>
         </div>
-        <div v-if="type">
-            <EmbedFrame :body="embedHtml"></EmbedFrame>                        
+        <div class="_frm_hdr" :style="{ height: screenHeight + 'px' }">
+            <template v-if="type">
+                <EmbedFrame :body="embedHtml" :embed="cleanedUrl" :type="type"></EmbedFrame>
+            </template>
+            <template v-else>
+                <EmbedBox></EmbedBox>
+            </template>
         </div>
-        <template v-else>
-            <EmbedBox></EmbedBox>
-        </template>
+        
     </div>
   </template>
   
@@ -66,41 +68,61 @@
                 errorFetching: "Error reading data from remote url"
                 },
             identifiers: ['list', 'showoff', 'board', 'follow', "parlor"],
-            url: null,
-            targetDOMs:null,
+            url: "",
             embeddable:null,
-            embedHtml:null,
+            embedHtml:"",
             type:null,
+            cleanedUrl:"",
+            scrollPosition:0
         };
     },
     mounted() {
         this.screenHeight = window.innerHeight - 150;
+        this.scrollPosition = window.scrollY;
         window.addEventListener('resize', this.updateScreenHeight);
+        window.addEventListener('scroll', this.handleScroll);
     },
     beforeUnmount() {
         window.removeEventListener('resize', this.updateScreenHeight);
+        window.removeEventListener('scroll', this.handleScroll);
     },
     methods: {
         updateScreenHeight() {
-        this.screenHeight = window.innerHeight - 150;
+            this.screenHeight = window.innerHeight - 150;
         },
-        findTargets() {
-            this.targetDOMs = document.querySelectorAll('.' + this.options.target);
+        handleScroll() {
+            this.scrollPosition = window.scrollY;
+        },
+        checkUrl() {
+            // Regular expression pattern to match against the URL
+            const urlPattern = /^(http|https):\/\/[^ "]+$/;
+
+            // Check if the URL matches the pattern
+            return urlPattern.test(this.url);
         },
         createLink() {
             if(this.url === null){
-                alert(1231);
+                alert("Something's Not Right. Sorry, we couldn't understand that query. Please try again.");
                 return;
             }
-            var u = this.url.split('//');
+            if(!this.checkUrl()){
+                alert("Something's Not Right. Sorry, we couldn't understand that query. Please try again.");
+                return;
+            }else{
+                if (this.url.indexOf('?') !== -1) {
+                    this.cleanedUrl = this.url.substring(0, this.url.indexOf('?'));
+                } else {
+                    this.cleanedUrl = this.url;
+                }
+            }
+            
+            var u = this.cleanedUrl.split('//');
             if (u[0] === "http:" || u[0] === "https:") {
                 var keys = u[1].split('/');
                 if (keys[0] === "cubehall.com") {
-                    console.log("cub");
                     if (this.validateIdentifier(keys[1], this.identifiers)) {
                         this.embeddable = this.domain + '/embed/' + keys[1] + "/" + keys[2];
                         this.type = keys[1];
-                        
                     } else {
                         this.embeddable = this.domain + '/embed/store/' + keys[1];
                         this.type = "store";
@@ -108,7 +130,7 @@
                     
                     this.getIframe(this.embeddable);
                 } else {
-                    alert(1);
+                    alert("Something's Not Right. Sorry, we couldn't understand that query. Please try again.");
                     return;
                 }
             }else{
@@ -123,57 +145,20 @@
             await axios.get(url)
             .then(response => {
                 this.embedHtml = response.data;
+                this.scrollToEmbed();
             })
             .catch(error => {
                 console.error(error);
             });
             
         },
-        createFrame() {
-            this.findTargets();
-
-            this.targetDOMs.forEach(e => {
-                var l = e.querySelector(this.permalink).getAttribute('href');
-                console.log(l);
-                e.querySelector(this.permalink).setAttribute("class", "cubehall-btn-link");
-                if (this.validateUrl(l)) {
-                    this.getIframe(this.createLink(l))
-                    .then(data => {
-                        this.embed(e, data);
-                    });
-                }
-                this.resizeFrame(e);
+        scrollToEmbed(){
+            window.scrollTo({
+            top: this.screenHeight,
+            behavior: 'smooth'
             });
-            this.insertStylesheet();
-        },
-        embed(e, data) {
-            e.insertAdjacentHTML('afterbegin', data);
-        },
-        resizeFrame(e) {
-            var w;
-            w = e.getAttribute('width');
-            if (w) {
-            e.style.maxWidth = w;
-            } else {
-            e.style.maxWidth = "100%";
-            }
-        },
-        insertStylesheet() {
-            var style = "@import url(https://fonts.googleapis.com/css?family=Nunito); @import url(https://fonts.googleapis.com/css2?family=Lato:wght@100;300;400;700;900&display=swap); @charset 'UTF-8'; .cubehall-embed-block { border-radius: 24px; overflow: hidden; border:solid 1px #c8c8c8; } .cubehall-btn-link { margin: 1px; color:black!important; text-decoration:underline; display: flex; } .cubehall-embed-img { width:100%; } .cubehall-embed-logo { height:auto; width:auto; max-height:28px; max-width:28px; } [data-type='cubehall-link'] { display: flex; justify-content:space-between; margin:16px; } .cubehall-store-wrap { display: grid; grid-template-columns: 25% 25% 25% 25%; } .cubehall-embed-profile-info { display:flex; } .cubehall-embed-profile-pic { height:48px; width:48px; border-radius:50%; overflow:hidden; flex-shrink:0; } .cubehall-embed-profile-pic img { height:100%; width:100%; }";
-
-            var css = document.createElement('style');
-            css.type = 'text/css';
-
-            if(css.styleSheet){
-                css.styleSheet.cssText = style;
-            }
-            else
-            {
-                css.appendChild(document.createTextNode(style));
-            }
-
-            document.getElementsByTagName("head")[0].appendChild(css);
         }
+        
     }
   }
   </script>
@@ -189,6 +174,12 @@
         justify-content: center;
         align-items: center;
         padding: 0 15px;
+        box-sizing: border-box;
+        overflow: hidden;
+    }
+    ._frm_hdr{
+        min-height: 500px;
+        padding: 15px;
         box-sizing: border-box;
     }
     .nav{

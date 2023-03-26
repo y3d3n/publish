@@ -1,5 +1,5 @@
 <template>
-    <PublishHome msg="Welcome to Your Vue.js App"/>
+    <PublishHome/>
 </template>
 
 <script>
