@@ -16,7 +16,8 @@
                     v-show="isInputActive" 
                     ref="menu"
                     class="_ch_suggest">
-                    <div @click="changeUrl(embed.product)" class="sg_card">
+                    <div class="_ch_suggest_warp">
+                        <div @click="changeUrl(embed.product)" class="sg_card">
                         A Product: <span class="sg_link">{{embed.product}}</span>
                     </div>
                     <div @click="changeUrl(embed.parlor)" class="sg_card">
@@ -31,6 +32,9 @@
                     <div @click="changeUrl(embed.showoff)" class="sg_card">
                         A ShowOff <span class="sg_link">{{ embed.showoff }}</span>
                     </div>
+
+                    </div>
+                    
                 </div>
             </div>
             <div class="nav">
@@ -50,9 +54,6 @@
             <template v-if="type">
                 <EmbedFrame :body="embedHtml" :embed="cleanedUrl" :type="type"></EmbedFrame>
             </template>
-            <template v-else>
-                <EmbedBox></EmbedBox>
-            </template>
                 <CommonQuestions></CommonQuestions>
         </div>
         
@@ -60,7 +61,6 @@
   </template>
   
   <script>
-    import EmbedBox from './EmbedBox.vue';
     import EmbedFrame from './EmbedFrame.vue';
     import CommonQuestions from './CommonQuestions.vue';
     import NoticeBox from './NoticeBox.vue';
@@ -72,7 +72,7 @@
       msg: String
     },
     components: {
-        EmbedBox, EmbedFrame, CommonQuestions, NoticeBox
+        EmbedFrame, CommonQuestions, NoticeBox
     },
     data() {
         return {
@@ -93,7 +93,7 @@
             },
             target: "cubehall-embed-block",
             screenHeight: null,
-            domain: "http://192.168.1.66/api",
+            domain: "https://cubehall.com/api",
             permalink : "a[data-link]",
             message: "Sorry, we couldn't understand that query. Please try again.",
             identifiers: ['list', 'showoff', 'board', 'follow', "parlor"],
@@ -221,20 +221,24 @@
         margin: 0 0 15px;
     }
     ._ch_suggest{
-        position: absolute;
+        position: relative;
+        width: 100%;
+    }
+    ._ch_suggest_warp{
+        width: 100%;
         background: white;
         color: #000000;
-        width: max-content;
         text-align: left;
+        position: absolute;
     }
     .sg_card{
-        padding: 15px;
+        padding: 15px 25px;
         cursor: pointer;
         font-size: 14px;
     }
     .sg_link{
         color: #f64a6d;
-        font-weight: 600;
+        font-weight: 800;
     }
     .sg_card:hover{
         background: #e6cccc;
