@@ -3,7 +3,7 @@
 </template>
 
 <script>
-import PublishHome from './components/PublishHome.vue'
+import PublishHome from './components/PublishHome.vue';
 
 export default {
   name: 'App',
